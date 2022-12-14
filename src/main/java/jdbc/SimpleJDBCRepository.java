@@ -17,14 +17,19 @@ public class SimpleJDBCRepository {
 //    private PreparedStatement ps = null;
    // private Statement st = createStatement();
 
-    private static final String createUserSQL = "insert into myusers(id, firstname,lastname, age) values (1,'kolia', 'olia', 33)";
-    private static final String updateUserSQL = "update myusers set lastname=sveta where id=1";
+    private static final String createUserSQL = "insert into myusers(id, firstname,lastname, age) values (?,?,?,?)";
+    private static final String updateUserSQL = "update myusers set firstname=?, lastname=?, age=? where id=?";
     private static final String deleteUser = "delete from myusers where id=?";
     private static final String findUserByIdSQL = "select * from myusers where id=?";
     private static final String findUserByNameSQL = "select * from myusers where name=?";
     private static final String findAllUserSQL = "select * from myusers";
 
-    public Long createUser() throws SQLException {
+    public Long createUser(User user) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(createUserSQL);
+        preparedStatement.setLong(1,user.getId());
+        preparedStatement.setString(2,user.getFirstName());
+        preparedStatement.setString(3,user.getLastName());
+        preparedStatement.setInt(4,user.getAge());
         ResultSet rs = connection.createStatement().executeQuery(createUserSQL);
         return rs.getLong("id");
     }
@@ -55,13 +60,18 @@ public class SimpleJDBCRepository {
         return users;
     }
 
-    public User updateUser() throws SQLException {
-        ResultSet rs = connection.createStatement().executeQuery(updateUserSQL);
+    public User updateUser(User user) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(updateUserSQL);
+        preparedStatement.setLong(4,user.getId());
+        preparedStatement.setString(1,user.getFirstName());
+        preparedStatement.setString(2,user.getLastName());
+        preparedStatement.setInt(3,user.getAge());
+        ResultSet rs = preparedStatement.executeQuery();
         return new User(rs.getLong("id"), rs.getString("firstname"), rs.getString("lastname"),
                 rs.getInt("age"));
     }
 
-    private void deleteUser(Long userId) throws SQLException {
+    public void deleteUser(Long userId) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement(deleteUser);
         preparedStatement.setLong(1,userId);
         preparedStatement.executeQuery();
