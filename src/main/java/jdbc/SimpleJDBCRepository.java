@@ -24,7 +24,8 @@ public class SimpleJDBCRepository {
     private static final String findUserByNameSQL = "select * from myusers where name=?";
     private static final String findAllUserSQL = "select * from myusers";
 
-    public Long createUser(User user) throws SQLException {
+    @SneakyThrows
+    public Long createUser(User user) {
         PreparedStatement preparedStatement = connection.prepareStatement(createUserSQL);
         preparedStatement.setLong(1,user.getId());
         preparedStatement.setString(2,user.getFirstName());
@@ -34,7 +35,8 @@ public class SimpleJDBCRepository {
         return rs.getLong("id");
     }
 
-    public User findUserById(Long userId) throws SQLException {
+    @SneakyThrows
+    public User findUserById(Long userId) {
         PreparedStatement preparedStatement = connection.prepareStatement(findUserByIdSQL);
         preparedStatement.setLong(1,userId);
         ResultSet rs = preparedStatement.executeQuery();
@@ -42,7 +44,8 @@ public class SimpleJDBCRepository {
                 rs.getInt("age"));
     }
 
-    public User findUserByName(String userName) throws SQLException {
+    @SneakyThrows
+    public User findUserByName(String userName) {
         PreparedStatement preparedStatement = connection.prepareStatement(findUserByNameSQL);
         preparedStatement.setString(1,userName);
         ResultSet rs = preparedStatement.executeQuery();
@@ -50,7 +53,8 @@ public class SimpleJDBCRepository {
                 rs.getInt("age"));
     }
 
-    public List<User> findAllUser() throws SQLException {
+    @SneakyThrows
+    public List<User> findAllUser() {
         ResultSet rs = connection.createStatement().executeQuery(findAllUserSQL);
         List<User> users = new ArrayList<>();
         while(rs.next()){
@@ -60,7 +64,8 @@ public class SimpleJDBCRepository {
         return users;
     }
 
-    public User updateUser(User user) throws SQLException {
+    @SneakyThrows
+    public User updateUser(User user) {
         PreparedStatement preparedStatement = connection.prepareStatement(updateUserSQL);
         preparedStatement.setLong(4,user.getId());
         preparedStatement.setString(1,user.getFirstName());
@@ -71,7 +76,8 @@ public class SimpleJDBCRepository {
                 rs.getInt("age"));
     }
 
-    public void deleteUser(Long userId) throws SQLException {
+    @SneakyThrows
+    public void deleteUser(Long userId) {
         PreparedStatement preparedStatement = connection.prepareStatement(deleteUser);
         preparedStatement.setLong(1,userId);
         preparedStatement.executeQuery();
