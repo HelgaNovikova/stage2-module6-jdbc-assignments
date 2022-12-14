@@ -6,10 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
@@ -44,7 +41,7 @@ public class CustomDataSource implements DataSource {
             synchronized (CustomDataSource.class) {
                 if (instance == null) {
                     Properties props = new Properties();
-                    FileInputStream fis =  new FileInputStream("app.properties");
+                    InputStream fis =  CustomDataSource.class.getClassLoader().getResourceAsStream("app.properties");
                     props.load(fis);
                     String url = props.getProperty("postgres.url");
                     String password = props.getProperty("postgres.password");
