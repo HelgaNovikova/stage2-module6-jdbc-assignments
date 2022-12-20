@@ -3,9 +3,7 @@ package jdbc;
 
 import lombok.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +14,8 @@ import java.util.List;
 public class SimpleJDBCRepository {
 
     private Connection connection = CustomDataSource.getInstance().getConnection();
-//    private PreparedStatement ps = null;
-    // private Statement st = createStatement();
-
-    private static final String createUserSQL = "insert into myusers(firstname,lastname, age) values ( ? , ? , ? ) RETURNING id";
-    private static final String updateUserSQL = "update myusers set firstname=?, lastname=?, age=? where id=? returning id, firstname, lastname, age";
+    private static final String createUserSQL = "insert into myusers(firstname,lastname, age) values ( ? , ? , ? )";
+    private static final String updateUserSQL = "update myusers set firstname=?, lastname=?, age=? where id=? ";
     private static final String deleteUser = "delete from myusers where id=?";
     private static final String findUserByIdSQL = "select * from myusers where id=?";
     private static final String findUserByNameSQL = "select * from myusers where firstname=?";
@@ -28,11 +23,12 @@ public class SimpleJDBCRepository {
 
     @SneakyThrows
     public Long createUser(User user) {
-        PreparedStatement preparedStatement = connection.prepareStatement(createUserSQL);
+        PreparedStatement preparedStatement = connection.prepareStatement(createUserSQL,Statement.RETURN_GENERATED_KEYS);
         preparedStatement.setString(1, user.getFirstName());
         preparedStatement.setString(2, user.getLastName());
         preparedStatement.setInt(3, user.getAge());
-        ResultSet rs = preparedStatement.executeQuery();
+        preparedStatement.executeUpdate();
+        ResultSet rs = preparedStatement.getGeneratedKeys();
         rs.next();
         return rs.getLong(1);
     }
@@ -75,10 +71,7 @@ public class SimpleJDBCRepository {
         preparedStatement.setString(1, user.getFirstName());
         preparedStatement.setString(2, user.getLastName());
         preparedStatement.setInt(3, user.getAge());
-        ResultSet rs = preparedStatement.executeQuery();
-        rs.next();
-        return new User(rs.getLong("id"), rs.getString("firstname"), rs.getString("lastname"),
-                rs.getInt("age"));
+        return findUserById(user.getId());
     }
 
     @SneakyThrows
@@ -88,14 +81,23 @@ public class SimpleJDBCRepository {
         preparedStatement.executeUpdate();
     }
 
-//    public static void main(String[] args) {
-//        SimpleJDBCRepository repository = new SimpleJDBCRepository();
-//        User user = new User(null, "dgjdfil", "gkljmfgl", 4);
-//        user.setId(repository.createUser(user));
-//        repository.findAllUser();
-//        repository.findUserById(user.getId());
-//        repository.findUserByName(user.getFirstName());
-//        repository.updateUser(user);
-//        repository.deleteUser(user.getId());
-//    }
+    public static void main(String[] args) throws SQLException {
+        SimpleJDBCRepository repository = new SimpleJDBCRepository();
+        Connection connection = CustomDataSource.getInstance().getConnection();
+        Statement st = connection.createStatement();
+        st.execute("create  table myusers (\n" +
+                " id serial primary key, \n" +
+                " firstname VARCHAR(255), \n" +
+                " lastname VARCHAR(255), \n" +
+                " age INT\n" +
+                ")");
+
+        User user = new User(null, "dgjdfil", "gkljmfgl", 4);
+        user.setId(repository.createUser(user));
+        repository.findAllUser();
+        repository.findUserById(user.getId());
+        repository.findUserByName(user.getFirstName());
+        repository.updateUser(user);
+        repository.deleteUser(user.getId());
+    }
 }
